@@ -11,19 +11,29 @@ import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+
+import cmov.feup.printersimulator.model.Order;
+import cmov.feup.printersimulator.model.Product;
 
 public class MainActivity extends AppCompatActivity {
 
-        TextView tv;
+        TextView tv, nameTxt, surnameTxt,totalPriceTxt;
         static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
+
+
+        ListView listView;
+        private static ListViewAdapter adapter;
+        final String CURRENCY = " €";
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -31,23 +41,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
         tv = (TextView) findViewById(R.id.textView1);
+        nameTxt = (TextView)findViewById(R.id.nameTxt);
+        totalPriceTxt = (TextView)findViewById(R.id.orderPriceTotalTxt);
+        surnameTxt = (TextView)findViewById(R.id.surnnameTxt);
+        listView = (ListView)findViewById(R.id.listView);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                    tv.setText("open qr reader");
-                }
-        });
-
-
         fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -55,7 +55,69 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-    }
+        }
+
+
+        private void displayOrder(String token){
+            ArrayList<Order> order = new ArrayList<>();
+            String name= "John",surname = "Doe";
+
+
+            tv.setText("Please wait");
+            //TODO remove mock data after implementing rest connection
+            order.add(new Order(new Product("Product 1","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",1d), 1));
+            order.add(new Order(new Product("Product 2","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",2.21d), 4));
+            order.add(new Order(new Product("Product 3","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",3.12d), 5));
+            order.add(new Order(new Product("Product 1","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",1d), 1));
+            /*order.add(new Order(new Product("Product 2","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",2.21d), 4));
+            order.add(new Order(new Product("Product 3","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",3.12d), 5));
+            order.add(new Order(new Product("Product 1","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",1d), 1));
+            order.add(new Order(new Product("Product 2","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",2.21d), 4));
+            order.add(new Order(new Product("Product 3","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",3.12d), 5));
+            order.add(new Order(new Product("Product 4","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",24.99d), 11));
+            order.add(new Order(new Product("Product 4","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",24.99d), 11));
+            order.add(new Order(new Product("Product 4","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",24.99d), 11));
+            order.add(new Order(new Product("Product 4","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",24.99d), 11));
+            order.add(new Order(new Product("Product 4","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",24.99d), 11));
+            order.add(new Order(new Product("Product 4","Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",24.99d), 11));
+            */
+            //--------------------------------------------------------
+
+            /*TODO use token to get order details (nameTxt and surnameTxt of the customer , all products and quantities + price for each)
+            order = get order list from server
+            name = ...
+            surname = ...
+            */
+
+            double totalprice = 0;
+            for (Order o:order){
+                totalprice += (o.getQuantity()*o.getProduct().getPrice());
+            }
+
+            ListView view_instance = (ListView)findViewById(R.id.listView);
+            ViewGroup.LayoutParams params=view_instance.getLayoutParams();
+            if(order.size() > 10){
+                params.height=600;
+            }
+            else{
+                params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            }
+
+            view_instance.setLayoutParams(params);
+
+            adapter= new ListViewAdapter(order,getApplicationContext());
+            listView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+
+
+            nameTxt.setText("name: " + name);
+            surnameTxt.setText("surname: " + surname);
+            totalPriceTxt.setText(String.format("%.2f",totalprice) + CURRENCY);
+            LinearLayout l = (LinearLayout)findViewById(R.id.list);
+            l.setVisibility(View.VISIBLE);
+            tv.setVisibility(View.GONE);
+
+        }
 
     public void scan(boolean qrcode) {
         try {
@@ -90,15 +152,10 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 final String contents = data.getStringExtra("SCAN_RESULT");
                 String format = data.getStringExtra("SCAN_RESULT_FORMAT");
-
-                tv.setText(contents);
-                Log.d("-------",contents);
-                //TODO load the list using the token (contents)
+                displayOrder(contents);
             }
         }
     }
-
-
 
 
 
@@ -111,13 +168,12 @@ public class MainActivity extends AppCompatActivity {
                     NfcAdapter.EXTRA_NDEF_MESSAGES);
 
             NdefMessage message = (NdefMessage) rawMessages[0]; // only one message transferred
-            tv.setText(new String(message.getRecords()[0].getPayload()));
-
+            //tv.setText(new String(message.getRecords()[0].getPayload()));
+            displayOrder(new String(message.getRecords()[0].getPayload()));
         }
 
     }
 
-    //_---------------------------------------------------
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
