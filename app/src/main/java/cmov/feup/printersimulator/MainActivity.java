@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         final String CURRENCY = " €";
     TextView tv, nameTxt, surnameTxt, totalPriceTxt;
     ListView listView;
+    ArrayList<Order> arrayOrder = new ArrayList<>();
 
     private static AlertDialog showDialog(final Activity act, CharSequence title, CharSequence message, CharSequence buttonYes, CharSequence buttonNo) {
         AlertDialog.Builder downloadDialog = new AlertDialog.Builder(act);
@@ -60,20 +61,13 @@ public class MainActivity extends AppCompatActivity {
         return downloadDialog.show();
     }
 
-/*
+
         private void displayOrder(String token){
-            ArrayList<Order> order = new ArrayList<>();
-            String name= "John",surname = "Doe";
 
-
-            double totalprice = 0;
-            for (Order o:order){
-                totalprice += (o.getQuantity()*o.getProduct().getPrice());
-            }
 
             ListView view_instance = (ListView)findViewById(R.id.listView);
             ViewGroup.LayoutParams params=view_instance.getLayoutParams();
-            if(order.size() > 10){
+            if (arrayOrder.size() > 10) {
                 params.height=600;
             }
             else{
@@ -82,19 +76,19 @@ public class MainActivity extends AppCompatActivity {
 
             view_instance.setLayoutParams(params);
 
-            adapter= new ListViewAdapter(order,getApplicationContext());
+            adapter = new ListViewAdapter(arrayOrder, getApplicationContext());
             listView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
 
 
-            nameTxt.setText("name: " + name);
-            surnameTxt.setText("surname: " + surname);
-            totalPriceTxt.setText(String.format("%.2f",totalprice) + CURRENCY);
+            //nameTxt.setText("name: ");
+            //surnameTxt.setText("surname: ");
+            //totalPriceTxt.setText(String.format("%.2f",totalprice) + CURRENCY);
             LinearLayout l = (LinearLayout)findViewById(R.id.list);
             l.setVisibility(View.VISIBLE);
             tv.setVisibility(View.GONE);
 
-        }*/
+        }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -135,8 +129,8 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 final String contents = data.getStringExtra("SCAN_RESULT");
                 String format = data.getStringExtra("SCAN_RESULT_FORMAT");
-                //displayOrder(contents);
-                GetOrder getOrder = new GetOrder("192.168.137.1", contents);
+                displayOrder(contents);
+                GetOrder getOrder = new GetOrder(contents);
                 Thread thr = new Thread(getOrder);
                 thr.start();
             }
@@ -232,13 +226,15 @@ public class MainActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
 
 
-                    nameTxt.setText("name: " + name);
-                    surnameTxt.setText("surname: " + surname);
+                    nameTxt.setText("Name: " + name + " " + surname);
+                    surnameTxt.setText("Date: " + date);
                     totalPriceTxt.setText(String.format("%.2f", totalprice) + CURRENCY);
                     LinearLayout l = (LinearLayout) findViewById(R.id.list);
                     l.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.GONE);
+
                 } catch (Exception e) {
+                    Log.d("updateUI", e.getMessage());
                 }
             }
         });
@@ -246,11 +242,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class GetOrder implements Runnable {
-        String address = null;
         String tkn = null;
 
-        GetOrder(String baseAddress, String token) {
-            address = baseAddress;
+        GetOrder(String token) {
             tkn = token;
         }
 
@@ -283,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
             HttpURLConnection urlConnection = null;
 
             try {
-                url = new URL("http://" + address + ":8181/sale");
+                url = new URL("http://" + EshopServer.address + ":8181/sale");
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setDoOutput(true);
                 urlConnection.setDoInput(true);
@@ -301,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
                     updateUI(response);
                 }
             } catch (Exception e) {
-                Log.d(address, "order", e);
+                Log.d(EshopServer.address, "order", e);
             } finally {
                 if (urlConnection != null)
                     urlConnection.disconnect();

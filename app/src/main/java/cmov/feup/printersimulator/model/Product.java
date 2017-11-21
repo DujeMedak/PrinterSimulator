@@ -3,10 +3,6 @@ package cmov.feup.printersimulator.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by Duje on 25.10.2017..
- */
-
 public class Product implements Parcelable {
 
     @SuppressWarnings("unused")
